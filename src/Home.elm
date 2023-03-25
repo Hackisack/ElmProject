@@ -5,24 +5,22 @@ import Html exposing (..)
 import Html.Events exposing (..)
 import Random
 import Random exposing (Generator)
-import Random.String as Rstring exposing(string)
+import Random.String as Rstring
 import Random.Char
 import Http
-import Http exposing (Body)
-import Http exposing (request)
-import Http exposing (expectStringResponse)
-import Random.Extra exposing (maybe)
+import Http exposing (..)
+import Http exposing (..)
+import Http exposing (..)
 import Random exposing (Generator)
 import Random exposing (Generator)
 import Random exposing (Generator)
-import Maybe exposing (Maybe)
 import Http
-import Http exposing (Header)
-import Json.Decode as Decode exposing (Decoder, decodeString, field, list, string)
+import Http exposing (..)
+import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Decode
 
 
-
+--TODO Check if rrom name is availiable else reroll
 
 -- MAIN
 
@@ -94,9 +92,8 @@ init _ =
 
 type Msg
     = Rolled String
+    | NewString
     | HTTPRequest
-    | HTTPResponse (Result Http.Error (List String))
-    | HTTPFailed String
     | GotData (Result Http.Error MyResults)
 
 
@@ -106,29 +103,26 @@ update msg model =
         Rolled newValue ->
             ( { model | randomString = newValue }, Cmd.none)
 
+        NewString ->
+            ( model, Random.generate Rolled (fiveLetterEnglishWord) )
+
         HTTPRequest ->
-            ( model, getData)
-
-        
-
-        HTTPResponse (Err _) ->
-            ( { model
-                | responseString = "Error"
-              }
-            , Cmd.none
-            )
-
-        HTTPFailed _ ->
-            ( { model | responseString = "HTTPFailed" }, Cmd.none )
+            ( model, getData)    
 
         GotData (Ok response) ->
-            ( { model | rooms = response.results }, Cmd.none )
-
-        HTTPResponse (Ok _) ->
-            Debug.todo "branch 'HTTPResponse (Ok _)' not implemented"
+            let
+                -- Erstelle eine neue Batch-Operation, die GotData und NewString ausführt
+                cmd = Cmd.batch
+                    [ Cmd.none
+                    , Random.generate Rolled fiveLetterEnglishWord
+                    ]
+            in
+            -- Aktualisiere den Zustand der Anwendung und führe die Batch-Operation aus
+            ( { model | rooms = response.results }, cmd )
+            
 
         GotData (Err _) ->
-            Debug.todo "branch 'GotData (Err _)' not implemented"
+            ( { model | responseString = "Error" }, Cmd.none )
 
 
 -- SUBSCRIPTIONS
