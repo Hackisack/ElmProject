@@ -28,13 +28,13 @@ type alias Model =
     { key : Nav.Key
     , url : Url.Url
     , property : String
-    , roomID : Maybe String
+    , roomID : String
     }
 
 
 init : flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
-    ( Model key url "modelInitialValue" Nothing, Cmd.none )
+    ( Model key url "modelInitialValue" "", Cmd.none )
 
 
 type Msg
@@ -67,13 +67,7 @@ update msg model =
             )
 
         Test ->
-            let
-                url = "http://www.google.com?roomID=123"
-                roomID = Url.fromString url |> Maybe.andThen (Parser.parse (Parser.query queryParser))
-            in
-            case roomID of
-                Just id -> ({model | roomID = id}, Cmd.none)
-                Nothing -> (model, Cmd.none)
+            ( {model | roomID = (Url.toString model.url) |> String.dropLeft 42}, Cmd.none)
 
 
 subscriptions : Model -> Sub Msg
@@ -86,18 +80,11 @@ view model =
     { title = "Room"
     , body =
         [ div [] [ button [onClick Test] [ text "Create New Room" ] ]
-         ,div [] [ text (Maybe.withDefault "Nothing" model.roomID) ]
+         ,div [] [ text (model.roomID) ]
         ]
     }
 
--- Define a parser for the query parameter
--- Convert the query string to a stringworks =
+-- Dont know why this works without error when there are two comments above
+-- but not when there is only one comment above
 queryParser =
     Query.string "roomID"
-
--- works : Model -> Cmd Msg
--- works model=
---     "http://www.google.com?roomID=123"
---         |> Url.fromString
---         |> Maybe.andThen (Parser.parse (Parser.query queryParser)) -- Just (Just 123)
-
