@@ -18,6 +18,10 @@ import Http
 import Http exposing (..)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Decode
+import Browser.Navigation
+import Url exposing (toString)
+import Debug exposing (toString)
+import Html.Attributes
 
 
 --TODO Check if rrom name is availiable else reroll
@@ -43,6 +47,7 @@ type alias Model =
     {randomString : String
     , responseString : String
     , rooms : List MyObject
+    , avilability : Bool
      }
 
 
@@ -83,18 +88,17 @@ myResultsDecoder =
 
 init : () -> ( Model, Cmd Msg)
 init _ =
-    (Model "" "" [], Cmd.none)
+    (Model "" "" [] False, Cmd.none)
 
 
 
 -- UPDATE
 
-
 type Msg
     = Rolled String
-    | NewString
     | HTTPRequest
     | GotData (Result Http.Error MyResults)
+    | JoinRoom
 
 
 update : Msg -> Model -> ( Model, Cmd Msg)
@@ -103,26 +107,41 @@ update msg model =
         Rolled newValue ->
             ( { model | randomString = newValue }, Cmd.none)
 
-        NewString ->
-            ( model, Random.generate Rolled (fiveLetterEnglishWord) )
-
         HTTPRequest ->
             ( model, getData)    
 
         GotData (Ok response) ->
             let
-                -- Erstelle eine neue Batch-Operation, die GotData und NewString ausführt
-                cmd = Cmd.batch
-                    [ Cmd.none
-                    , Random.generate Rolled fiveLetterEnglishWord
-                    ]
+                newModel =
+                    { model | rooms = response.results, avilability = checkAvilability model MyResults }
             in
-            -- Aktualisiere den Zustand der Anwendung und führe die Batch-Operation aus
-            ( { model | rooms = response.results }, cmd )
-            
+            (newModel, Cmd.batch [ Random.generate Rolled fiveteenLetterEnglishWord, createNewRoom model ] )
+
 
         GotData (Err _) ->
             ( { model | responseString = "Error" }, Cmd.none )
+
+        JoinRoom ->
+            ( model, Browser.Navigation.load "https://www.google.de" )
+
+
+checkAvilability : Model -> (List MyObject -> MyResults) -> Bool
+checkAvilability arg1 arg2 =
+   not <| List.member arg1.randomString (arg2 arg1.rooms |> .results |> List.map .roomName)
+
+
+
+
+
+
+createNewRoom : ({ a | avilability : Bool }) -> Cmd Msg
+createNewRoom model =
+      if model.avilability == True then
+        Browser.Navigation.load "https://www.google.de"
+    else
+        getData
+          
+        
 
 
 -- SUBSCRIPTIONS
@@ -141,15 +160,18 @@ view : Model -> Html Msg
 view model =
     div [ ]
         [ div [] [ button [onClick HTTPRequest] [ text "Create New Room" ] ]
+        , div [] [ Html.input [ Html.Attributes.value model.randomString, Html.Events.onInput Rolled ] [] ]
+        , div [] [ button [onClick JoinRoom] [ text "Join Room" ] ]
         , div [] [text(model.randomString)]
         , div [] [text(model.responseString)]
         , div [] [text(model.rooms |> List.map .roomName |> String.join ", ")]
+        , div [] [text (Debug.toString model.avilability)]
         ]
 
 
-fiveLetterEnglishWord : Generator String
-fiveLetterEnglishWord =
-     Rstring.string 5 Random.Char.english
+fiveteenLetterEnglishWord : Generator String
+fiveteenLetterEnglishWord =
+     Rstring.string 15 Random.Char.english
 
 
 getData : Cmd Msg
@@ -165,10 +187,4 @@ getData =
     }
    
 
-checkAvilability : Model -> Bool
-checkAvilability model=
 
-    if model.randomString == "[]"
-        then True
-        else False
-        
