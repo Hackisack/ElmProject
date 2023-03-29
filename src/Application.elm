@@ -93,7 +93,6 @@ type Msg
   |Rolled String
   | HTTPRequest
   | GotData (Result Http.Error MyResults)
-  | JoinRoom
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -129,10 +128,6 @@ update msg model =
     GotData (Err _) ->
         ( { model | responseString = "Error" }, Cmd.none )
 
-    JoinRoom ->
-        ( model, Browser.Navigation.load "https://www.google.de" )
-
-
 
 -- SUBSCRIPTIONS
 
@@ -152,7 +147,6 @@ view model =
   , body =
       [div [] [ button [onClick HTTPRequest] [ text "Create New Room" ] ]
           , div [] [ Html.input [ Html.Attributes.value model.randomString, Html.Events.onInput Rolled ] [] ]
-          , div [] [ button [onClick JoinRoom] [ text "Join Room" ] ]
           , div [] [text(model.randomString)]
           , div [] [text(model.responseString)]
           , div [] [text(model.rooms |> List.map .roomName |> String.join ", ")]
