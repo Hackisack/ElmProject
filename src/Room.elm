@@ -67,7 +67,7 @@ update msg model =
             )
 
         Test ->
-            ( {model | roomID = (Url.toString model.url) |> String.dropLeft 42}, Cmd.none)
+            ( {model | roomID =Maybe.withDefault "Error" (List.head (List.reverse (String.split "=" (Url.toString model.url))))}, Cmd.none)
 
 
 subscriptions : Model -> Sub Msg
@@ -84,7 +84,4 @@ view model =
         ]
     }
 
--- Dont know why this works without error when there are two comments above
--- but not when there is only one comment above
-queryParser =
-    Query.string "roomID"
+
