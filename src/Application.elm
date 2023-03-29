@@ -8,9 +8,6 @@ import Url
 import Random exposing (Generator)
 import Random.Char
 import Http
-import Home exposing (Msg(..))
-import Home exposing (MyObject)
-import Home exposing (MyResults)
 import Browser.Navigation
 import Json.Decode exposing (Decoder)
 import Json.Decode exposing (field)
@@ -66,6 +63,19 @@ type alias Model =
   , rooms : List MyObject
   , avilability : Bool
   }
+
+type alias MyObject =
+    { objectId : String
+    , specifiedDates : List String
+    , users : List String
+    , acceptedDates : List String
+    , roomName : String
+    , createdAt : String
+    , updatedAt : String
+    }
+
+type alias MyResults =
+    { results : List MyObject }
 
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -138,17 +148,9 @@ subscriptions _ =
 
 view : Model -> Browser.Document Msg
 view model =
-  { title = "URL Interceptor"
+  { title = "Terminplaner"
   , body =
-      [ text "The current URL is: "
-      , b [] [ text (Url.toString model.url) ]
-      , ul []
-          [ viewLink "/home"
-          , viewLink "/profile"
-          , viewLink "/reviews/the-century-of-the-self"
-          , viewLink "/reviews/public-opinion"
-          , viewLink "/reviews/shah-of-shahs"
-          ,div [] [ button [onClick HTTPRequest] [ text "Create New Room" ] ]
+      [div [] [ button [onClick HTTPRequest] [ text "Create New Room" ] ]
           , div [] [ Html.input [ Html.Attributes.value model.randomString, Html.Events.onInput Rolled ] [] ]
           , div [] [ button [onClick JoinRoom] [ text "Join Room" ] ]
           , div [] [text(model.randomString)]
@@ -156,7 +158,6 @@ view model =
           , div [] [text(model.rooms |> List.map .roomName |> String.join ", ")]
           , div [] [text (Debug.toString model.avilability)]
           ]
-      ]
   }
 
 
