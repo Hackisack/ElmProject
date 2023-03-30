@@ -52,7 +52,7 @@ type alias MyResults =
 
 init : flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
-    ( Model key url "modelInitialValue" ""  { objectId = "", specifiedDates = [""], users = [""], acceptedDates = [""], roomName = "", createdAt ="", updatedAt = ""} "", Cmd.none )
+    ( Model key url "modelInitialValue" "default"  { objectId = "", specifiedDates = [""], users = [""], acceptedDates = [""], roomName = "", createdAt ="", updatedAt = ""} "", Cmd.none )
 
 
 type Msg
@@ -89,10 +89,13 @@ update msg model =
             ( {model | roomID =Maybe.withDefault "Error" (List.head (List.reverse (String.split "=" (Url.toString model.url))))}, getData model)
 
         GotData (Ok response) ->
-           ( { model | room =(List.head (response.results))}, Cmd.none )
+           ( { model | room =(Maybe.withDefault defaultObject (findRightRoom model.roomID response))}, Cmd.none )
             
         GotData (Err _) ->
             ( { model | error = "Error" }, Cmd.none )
+
+
+
 
 
 subscriptions : Model -> Sub Msg
@@ -110,21 +113,17 @@ view model =
         ]
     }
 
--- Placeholders
-
-defaultResults : MyResults
-defaultResults =
-    { results = [defaultObject ] }
+-- Placeholder
 
 defaultObject : MyObject
 defaultObject =
-    { objectId = ""
-    , specifiedDates = [""]
-    , users = [""]
-    , acceptedDates = [""]
-    , roomName = ""
-    , createdAt =""
-    , updatedAt = ""
+    { objectId = "Default"
+    , specifiedDates = ["Default"]
+    , users = ["Default"]
+    , acceptedDates = ["Default"]
+    , roomName = "Default"
+    , createdAt ="Default"
+    , updatedAt = "Default"
     }
 
 -- Functions
@@ -135,7 +134,7 @@ getData model=
     {method = "GET"
     , headers = [Http.header "X-Parse-Application-Id" "58G7kMmJiXqTEW6MCENwiLb6H8ebaiCJX3ahL91c", Http.header "X-Parse-REST-API-Key" "elB9iy4qqTAHzWxdQtFTqRsm84tTRctjyAmMyIBO"]
     , url = "https://parseapi.back4app.com/classes/RoomEntry"
-    , body = Http.stringBody ("where={\"roomID\":\""           ++ model.roomID ++             "\"}") "application/json"
+    , body = Http.emptyBody
     , expect = Http.expectJson GotData myResultsDecoder
     , timeout = Nothing
     , tracker = Nothing
@@ -156,3 +155,8 @@ myResultsDecoder : Decoder MyResults
 myResultsDecoder =
     Json.Decode.map MyResults
         (field "results" (Json.Decode.list myObjectDecoder))
+
+findRightRoom : String -> MyResults -> Maybe MyObject
+findRightRoom roomID myResults =
+    List.filter (\obj -> obj.roomName == roomID) myResults.results
+        |> List.head
