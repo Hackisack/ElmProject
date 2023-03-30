@@ -4,16 +4,11 @@ import Browser
 import Browser.Navigation as Nav
 import Html exposing (..)
 import Url
-import Url.Parser exposing (Parser)
 import Url
-import Url.Parser as Parser
-import Url.Parser.Query as Query
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode exposing (Decoder)
 import Json.Decode exposing (field)
-
-
 
 main : Program () Model Msg
 main =
@@ -51,7 +46,7 @@ type alias MyResults =
 
 
 init : flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags url key =
+init _ url key =
     ( Model key url "modelInitialValue" "default"  { objectId = "", specifiedDates = [""], users = [""], acceptedDates = [""], roomName = "", createdAt ="", updatedAt = ""} "", Cmd.none )
 
 
@@ -86,7 +81,7 @@ update msg model =
             )
 
         RetrieveUrlID ->
-            ( {model | roomID =Maybe.withDefault "Error" (List.head (List.reverse (String.split "=" (Url.toString model.url))))}, getData model)
+            ( {model | roomID =Maybe.withDefault "Error" (List.head (List.reverse (String.split "=" (Url.toString model.url))))}, getData)
 
         GotData (Ok response) ->
            ( { model | room =(Maybe.withDefault defaultObject (findRightRoom model.roomID response))}, Cmd.none )
@@ -128,8 +123,8 @@ defaultObject =
 
 -- Functions
 
-getData :Model -> Cmd Msg
-getData model=
+getData : Cmd Msg
+getData =
     Http.request
     {method = "GET"
     , headers = [Http.header "X-Parse-Application-Id" "58G7kMmJiXqTEW6MCENwiLb6H8ebaiCJX3ahL91c", Http.header "X-Parse-REST-API-Key" "elB9iy4qqTAHzWxdQtFTqRsm84tTRctjyAmMyIBO"]
