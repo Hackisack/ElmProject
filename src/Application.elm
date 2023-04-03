@@ -34,6 +34,7 @@ import Json.Encode as Encode
 import Browser.Navigation
 import Debug
 import Html.Attributes
+import Array exposing (Array)
 
 
 
@@ -147,7 +148,6 @@ view model =
   { title = "Terminplaner"
   , body =
       [div [] [ button [onClick HTTPRequest] [ text "Create New Room" ] ]
-          , div [] [ Html.input [ Html.Attributes.value model.randomString, Html.Events.onInput Rolled ] [] ]
           , div [] [text(model.randomString)]
           , div [] [text(model.responseString)]
           , div [] [text(model.rooms |> List.map .roomName |> String.join ", ")]
@@ -183,11 +183,12 @@ getData =
 sendData : Model -> Cmd Msg
 sendData model =
     let
+        payload : Encode.Value
         payload =
             Encode.object
                 [ ( "roomName", Encode.string "test Put" )
-                , ( "specifiedDates", Encode.string "11.04.2001,12.04.2001" )
-                , ( "users", Encode.string "[Admin]" )
+                , ( "specifiedDates", Encode.array [Encode.string "11.04.2001", Encode.string "12."] )
+                , ( "users", Encode.array [Encode.string "Admin"] )
                 ]
     in
     Http.request
@@ -199,7 +200,7 @@ sendData model =
         , timeout = Nothing
         , tracker = Nothing
         }
-   
+
 checkAvilability : Model -> (List MyObject -> MyResults) -> Bool
 checkAvilability arg1 arg2 =
    not <| List.member arg1.randomString (arg2 arg1.rooms |> .results |> List.map .roomName)
