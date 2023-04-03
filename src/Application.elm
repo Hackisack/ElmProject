@@ -186,7 +186,7 @@ sendData model =
         payload : Encode.Value
         payload =
             Encode.object
-                [ ( "roomName", Encode.string "test Put" )
+                [ ( "roomName", Encode.string model.randomString )
                 , ( "specifiedDates",  Encode.list Encode.string ["11.04.2001", "12.04.2001"] )
                 , ( "users", Encode.list Encode.string ["test1", "test2"] )
                 ]
@@ -196,7 +196,7 @@ sendData model =
         , headers = [Http.header "X-Parse-Application-Id" "58G7kMmJiXqTEW6MCENwiLb6H8ebaiCJX3ahL91c", Http.header "X-Parse-REST-API-Key" "elB9iy4qqTAHzWxdQtFTqRsm84tTRctjyAmMyIBO"]
         , url = "https://parseapi.back4app.com/classes/RoomEntry"
         , body = Http.jsonBody payload
-        , expect = Http.expectJson GotData myResultsDecoder
+        , expect = Http.expectWhatever (\_ -> GotData (Ok {results = []}))
         , timeout = Nothing
         , tracker = Nothing
         }
