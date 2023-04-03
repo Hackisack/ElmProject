@@ -8,7 +8,6 @@ import Url
 import Random exposing (Generator)
 import Random.Char
 import Http
-import Browser.Navigation
 import Json.Decode exposing (Decoder)
 import Json.Decode exposing (field)
 import Json.Decode
@@ -31,10 +30,7 @@ import Http exposing (..)
 import Json.Decode exposing (Decoder, field)
 import Json.Decode
 import Json.Encode as Encode
-import Browser.Navigation
 import Debug
-import Html.Attributes
-import Array exposing (Array)
 
 
 
@@ -64,6 +60,8 @@ type alias Model =
   , responseString : String
   , rooms : List MyObject
   , avilability : Bool
+  , formFields : List String
+  , newField : String
   }
 
 type alias MyObject =
@@ -82,7 +80,7 @@ type alias MyResults =
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
-  ( Model key url "" "" [] False, Cmd.none )
+  ( Model key url "" "" [] False [] "", Cmd.none )
 
 
 
@@ -95,6 +93,8 @@ type Msg
   |Rolled String
   | HTTPRequest
   | GotData (Result Http.Error MyResults)
+  | AddField
+  | UpdateNewField String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -130,6 +130,12 @@ update msg model =
     GotData (Err _) ->
         ( { model | responseString = "Error" }, Cmd.none )
 
+    AddField ->
+        ({ model | formFields = model.formFields ++ [ model.newField ], newField = "" }, Cmd.none)
+
+    UpdateNewField newField ->
+        ({ model | newField = newField }, Cmd.none)
+
 
 -- SUBSCRIPTIONS
 
@@ -152,6 +158,12 @@ view model =
           , div [] [text(model.responseString)]
           , div [] [text(model.rooms |> List.map .roomName |> String.join ", ")]
           , div [] [text (Debug.toString model.avilability)]
+          , div [] [text (Debug.toString model.formFields)]
+          , ul [] (List.map (\field -> li [] [ text field ]) model.formFields)
+          , div [] [ Html.form [] (List.map formFieldView model.formFields)
+          , input [ type_ "text", value model.newField, onInput UpdateNewField ] []
+        , button [ onClick AddField ] [ text "Add field" ]
+        ]
           ]
   }
 
@@ -227,3 +239,7 @@ myResultsDecoder : Decoder MyResults
 myResultsDecoder =
     Json.Decode.map MyResults
         (field "results" (Json.Decode.list myObjectDecoder))
+
+formFieldView : String -> Html Msg
+formFieldView field =
+    div [] [ input [ type_ "text", value field ] [] ]
