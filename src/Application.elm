@@ -30,6 +30,7 @@ import Http
 import Http exposing (..)
 import Json.Decode exposing (Decoder, field)
 import Json.Decode
+import Json.Encode as Encode
 import Browser.Navigation
 import Debug
 import Html.Attributes
@@ -178,15 +179,35 @@ getData =
     , timeout = Nothing
     , tracker = Nothing
     }
+
+sendData : Model -> Cmd Msg
+sendData model =
+    let
+        payload =
+            Encode.object
+                [ ( "roomName", Encode.string "test Put" )
+                , ( "specifiedDates", Encode.string "11.04.2001,12.04.2001" )
+                , ( "users", Encode.string "[Admin]" )
+                ]
+    in
+    Http.request
+        {method = "POST"
+        , headers = [Http.header "X-Parse-Application-Id" "58G7kMmJiXqTEW6MCENwiLb6H8ebaiCJX3ahL91c", Http.header "X-Parse-REST-API-Key" "elB9iy4qqTAHzWxdQtFTqRsm84tTRctjyAmMyIBO"]
+        , url = "https://parseapi.back4app.com/classes/RoomEntry"
+        , body = Http.jsonBody payload
+        , expect = Http.expectJson GotData myResultsDecoder
+        , timeout = Nothing
+        , tracker = Nothing
+        }
    
 checkAvilability : Model -> (List MyObject -> MyResults) -> Bool
 checkAvilability arg1 arg2 =
    not <| List.member arg1.randomString (arg2 arg1.rooms |> .results |> List.map .roomName)
 
-createNewRoom : ({ a | avilability : Bool }) -> Cmd Msg
+createNewRoom : Model -> Cmd Msg
 createNewRoom model =
       if model.avilability == True then
-        Browser.Navigation.load "https://www.google.de"
+        sendData model
     else
         getData
 
