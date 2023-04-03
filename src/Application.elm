@@ -187,8 +187,8 @@ sendData model =
         payload =
             Encode.object
                 [ ( "roomName", Encode.string "test Put" )
-                , ( "specifiedDates", Encode.array [Encode.string "11.04.2001", Encode.string "12."] )
-                , ( "users", Encode.array [Encode.string "Admin"] )
+                , ( "specifiedDates",  Encode.list Encode.string ["11.04.2001", "12.04.2001"] )
+                , ( "users", Encode.list Encode.string ["test1", "test2"] )
                 ]
     in
     Http.request
