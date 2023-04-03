@@ -196,7 +196,7 @@ sendData model =
         , headers = [Http.header "X-Parse-Application-Id" "58G7kMmJiXqTEW6MCENwiLb6H8ebaiCJX3ahL91c", Http.header "X-Parse-REST-API-Key" "elB9iy4qqTAHzWxdQtFTqRsm84tTRctjyAmMyIBO"]
         , url = "https://parseapi.back4app.com/classes/RoomEntry"
         , body = Http.jsonBody payload
-        , expect = Http.expectWhatever (\_ -> GotData (Ok {results = []}))
+        , expect = Http.expectWhatever (\_ -> GotData (Ok {results = []})) --TODO display error if something went wrong
         , timeout = Nothing
         , tracker = Nothing
         }
