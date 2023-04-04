@@ -60,8 +60,9 @@ type alias Model =
   , responseString : String
   , rooms : List MyObject
   , avilability : Bool
-  , formFields : List String
-  , newField : String
+  , formFieldsDate : List String
+  , newFieldDate : String
+  , roomCreated : String
   }
 
 type alias MyObject =
@@ -77,10 +78,15 @@ type alias MyObject =
 type alias MyResults =
     { results : List MyObject }
 
+type alias MyCreation =
+    { objectId : String
+    , createdAt : String
+    }
+
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
-  ( Model key url "" "" [] False [] "", Cmd.none )
+  ( Model key url "" "" [] False [] "" "", Cmd.none )
 
 
 
@@ -95,6 +101,7 @@ type Msg
   | GotData (Result Http.Error MyResults)
   | AddField
   | UpdateNewField String
+  | RoomCreation (Result Http.Error MyCreation)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -114,27 +121,35 @@ update msg model =
       )
 
     Rolled newValue ->
-      ( { model | randomString = newValue }, Cmd.none)
+      ( { model | randomString = newValue, avilability = checkAvilability model MyResults }, createNewRoom model)
 
     HTTPRequest ->
         ( model, getData)    
 
-    GotData (Ok response) ->
-        let
-            newModel =
-                { model | rooms = response.results, avilability = checkAvilability model MyResults }
-        in
-        (newModel, Cmd.batch [ Random.generate Rolled tenLetterEnglishWord, createNewRoom model ] )
+--first generate a rolled value, then check for the avialibility and if true, create the new room
+    GotData (Ok response) -> 
+        ( { model | rooms = response.results}, Random.generate Rolled tenLetterEnglishWord)
+
+        --( { model | rooms = response.results}, Random.generate Rolled tenLetterEnglishWord)
 
 
     GotData (Err _) ->
         ( { model | responseString = "Error" }, Cmd.none )
 
+    RoomCreation (Ok response) ->
+        ( { model | roomCreated = "Room was created. Open this link to access it:" ++ "http://localhost:8000/src/Room.elm?roomID=" ++ model.randomString }, Cmd.none )
+
+
+    RoomCreation (Err _) ->
+        ( { model | roomCreated = "Error, please try again" }, Cmd.none )
+
     AddField ->
-        ({ model | formFields = model.formFields ++ [ model.newField ], newField = "" }, Cmd.none)
+        ({ model | formFieldsDate = model.formFieldsDate ++ [ model.newFieldDate ], newFieldDate = "" }, Cmd.none)
 
     UpdateNewField newField ->
-        ({ model | newField = newField }, Cmd.none)
+        ({ model | newFieldDate = newField }, Cmd.none)
+
+
 
 
 -- SUBSCRIPTIONS
@@ -158,11 +173,10 @@ view model =
           , div [] [text(model.responseString)]
           , div [] [text(model.rooms |> List.map .roomName |> String.join ", ")]
           , div [] [text (Debug.toString model.avilability)]
-          , div [] [text (Debug.toString model.formFields)]
-          , ul [] (List.map (\field -> li [] [ text field ]) model.formFields)
-          , div [] [ Html.form [] (List.map formFieldView model.formFields)
-          , input [ type_ "text", value model.newField, onInput UpdateNewField ] []
-        , button [ onClick AddField ] [ text "Add field" ]
+          , div [] [ Html.form [] (List.map formFieldView model.formFieldsDate) --show all existing fields
+          , input [ type_ "text", value model.newFieldDate, onInput UpdateNewField ] [] --show new fields
+          , button [ onClick AddField ] [ text "Add Date/Event" ]
+          , div [] [text (model.roomCreated)]
         ]
           ]
   }
@@ -199,8 +213,9 @@ sendData model =
         payload =
             Encode.object
                 [ ( "roomName", Encode.string model.randomString )
-                , ( "specifiedDates",  Encode.list Encode.string ["11.04.2001", "12.04.2001"] )
-                , ( "users", Encode.list Encode.string ["test1", "test2"] )
+                , ( "specifiedDates",  Encode.list Encode.string model.formFieldsDate )
+                , ( "users", Encode.list Encode.string [] )
+                , ( "acceptedDates", Encode.list Encode.string [] )
                 ]
     in
     Http.request
@@ -208,7 +223,7 @@ sendData model =
         , headers = [Http.header "X-Parse-Application-Id" "58G7kMmJiXqTEW6MCENwiLb6H8ebaiCJX3ahL91c", Http.header "X-Parse-REST-API-Key" "elB9iy4qqTAHzWxdQtFTqRsm84tTRctjyAmMyIBO"]
         , url = "https://parseapi.back4app.com/classes/RoomEntry"
         , body = Http.jsonBody payload
-        , expect = Http.expectWhatever (\_ -> GotData (Ok {results = []})) --TODO display error if something went wrong
+        , expect = Http.expectJson RoomCreation roomCreationDecoder
         , timeout = Nothing
         , tracker = Nothing
         }
@@ -216,13 +231,14 @@ sendData model =
 checkAvilability : Model -> (List MyObject -> MyResults) -> Bool
 checkAvilability arg1 arg2 =
    not <| List.member arg1.randomString (arg2 arg1.rooms |> .results |> List.map .roomName)
+   
 
 createNewRoom : Model -> Cmd Msg
 createNewRoom model =
       if model.avilability == True then
         sendData model
     else
-        getData
+        Cmd.none
 
 myObjectDecoder : Decoder MyObject
 myObjectDecoder =
@@ -243,3 +259,25 @@ myResultsDecoder =
 formFieldView : String -> Html Msg
 formFieldView field =
     div [] [ input [ type_ "text", value field ] [] ]
+
+roomCreationDecoder : Decoder MyCreation
+roomCreationDecoder =
+    Json.Decode.map2 MyCreation
+        (field "objectId" Json.Decode.string)
+        (field "createdAt" Json.Decode.string)
+
+checkForLink : Model -> (List MyObject -> MyResults) -> Maybe String
+checkForLink model myResults =
+    let
+        roomNames =
+            model.rooms |> myResults |> .results |> List.map .roomName
+    in
+    case List.filter (\room -> room == model.randomString) roomNames of
+        [] ->
+            Nothing
+        x :: _ ->
+            Just x
+
+
+-- Response if rrom is created sucessfully 
+-- {"objectId":"sUFyQvrR8w","createdAt":"2023-04-04T14:05:28.530Z"}
