@@ -121,17 +121,13 @@ update msg model =
       )
 
     Rolled newValue ->
-      ( { model | randomString = newValue, avilability = checkAvilability model MyResults },Cmd.batch [debugAll model ,doSomeMath model] )
+      ( { model | randomString = newValue},Cmd.none)
 
     HTTPRequest ->
-        ( model, getData)    
+        ( model,Cmd.batch[getData , Random.generate Rolled tenLetterEnglishWord])    
 
---first generate a rolled value, then check for the avialibility and if true, create the new room
     GotData (Ok response) -> 
-        ( { model | rooms = response.results}, Random.generate Rolled tenLetterEnglishWord)
-
-        --( { model | rooms = response.results}, Random.generate Rolled tenLetterEnglishWord)
-
+        ( { model | rooms = response.results}, createRoom model)
 
     GotData (Err _) ->
         ( { model | responseString = "Error" }, Cmd.none )
@@ -150,18 +146,9 @@ update msg model =
         ({ model | newFieldDate = newField }, Cmd.none)
 
 
-debugAll : Model -> Cmd Msg
-debugAll model =
-     Debug.log "My values are:" (model.randomString, model.rooms, model.avilability)
-  |> always Cmd.none
 
-doSomeMath : Model -> Cmd Msg
-doSomeMath model =
-    let
-        result1 = checkAvilability model MyResults
-        result2 = createNewRoom result1
-    in
-    Cmd.none
+
+        
 
 
 
@@ -220,8 +207,9 @@ getData =
     , tracker = Nothing
     }
 
-sendData : Model -> Cmd Msg
-sendData model =
+sendData : Model -> Bool -> Cmd Msg
+sendData model bool =
+  if bool then
     let
         payload : Encode.Value
         payload =
@@ -241,18 +229,12 @@ sendData model =
         , timeout = Nothing
         , tracker = Nothing
         }
+  else
+    Cmd.none
 
 checkAvilability : Model -> (List MyObject -> MyResults) -> Bool
 checkAvilability arg1 arg2 =
    not <| List.member arg1.randomString (arg2 arg1.rooms |> .results |> List.map .roomName)
-   
-
-createNewRoom : Bool -> Model -> Cmd Msg
-createNewRoom bool model =
-      if bool == True then
-        sendData model
-      else
-        Cmd.none
 
 myObjectDecoder : Decoder MyObject
 myObjectDecoder =
@@ -280,18 +262,16 @@ roomCreationDecoder =
         (field "objectId" Json.Decode.string)
         (field "createdAt" Json.Decode.string)
 
-checkForLink : Model -> (List MyObject -> MyResults) -> Maybe String
-checkForLink model myResults =
+createRoom : Model -> Cmd Msg
+createRoom model =
     let
-        roomNames =
-            model.rooms |> myResults |> .results |> List.map .roomName
-    in
-    case List.filter (\room -> room == model.randomString) roomNames of
-        [] ->
-            Nothing
-        x :: _ ->
-            Just x
+        avilable =
+            checkAvilability model MyResults
 
+        sendDataCmd =
+            sendData model avilable
+    in
+    sendDataCmd
 
 -- Response if rrom is created sucessfully 
 -- {"objectId":"sUFyQvrR8w","createdAt":"2023-04-04T14:05:28.530Z"}
