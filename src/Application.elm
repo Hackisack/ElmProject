@@ -121,7 +121,7 @@ update msg model =
       )
 
     Rolled newValue ->
-      ( { model | randomString = newValue, avilability = checkAvilability model MyResults }, createNewRoom model)
+      ( { model | randomString = newValue, avilability = checkAvilability model MyResults },Cmd.batch [debugAll model ,doSomeMath model] )
 
     HTTPRequest ->
         ( model, getData)    
@@ -148,6 +148,20 @@ update msg model =
 
     UpdateNewField newField ->
         ({ model | newFieldDate = newField }, Cmd.none)
+
+
+debugAll : Model -> Cmd Msg
+debugAll model =
+     Debug.log "My values are:" (model.randomString, model.rooms, model.avilability)
+  |> always Cmd.none
+
+doSomeMath : Model -> Cmd Msg
+doSomeMath model =
+    let
+        result1 = checkAvilability model MyResults
+        result2 = createNewRoom result1
+    in
+    Cmd.none
 
 
 
@@ -233,11 +247,11 @@ checkAvilability arg1 arg2 =
    not <| List.member arg1.randomString (arg2 arg1.rooms |> .results |> List.map .roomName)
    
 
-createNewRoom : Model -> Cmd Msg
-createNewRoom model =
-      if model.avilability == True then
+createNewRoom : Bool -> Model -> Cmd Msg
+createNewRoom bool model =
+      if bool == True then
         sendData model
-    else
+      else
         Cmd.none
 
 myObjectDecoder : Decoder MyObject
