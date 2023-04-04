@@ -123,6 +123,8 @@ defaultObject =
 
 -- Functions
 
+
+
 getData : Cmd Msg
 getData =
     Http.request
