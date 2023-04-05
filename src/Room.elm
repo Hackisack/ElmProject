@@ -186,7 +186,7 @@ checkbox date user acceptedDates =
     input
         [ type_ "checkbox"
         , checked isChecked
-        , disabled False
+        , disabled True
         ]
         []
 
