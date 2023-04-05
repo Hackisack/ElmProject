@@ -9,6 +9,9 @@ import Html.Events exposing (onClick)
 import Http
 import Json.Decode exposing (Decoder)
 import Json.Decode exposing (field)
+import Html.Attributes exposing (type_)
+import Html.Attributes exposing (checked)
+import Html.Attributes exposing (disabled)
 
 main : Program () Model Msg
 main =
@@ -105,6 +108,7 @@ view model =
         [ div [] [ button [onClick RetrieveUrlID] [ text "Join this Room" ] ]
           ,div [] [ text (model.roomID) ]
           ,div [] [ text (Debug.toString model.room) ]
+          ,div [] [ viewTable model.room ]
         ]
     }
 
@@ -157,3 +161,37 @@ findRightRoom : String -> MyResults -> Maybe MyObject
 findRightRoom roomID myResults =
     List.filter (\obj -> obj.roomName == roomID) myResults.results
         |> List.head
+
+
+-- TEST SPACE
+
+viewTable : MyObject -> Html Msg
+viewTable room =
+    let
+        dates = room.specifiedDates
+        users = room.users
+        rows =
+            List.map (\user -> tr [] (td [] [ text user ] :: List.map (\date -> td [] [ checkbox date user room.acceptedDates ]) dates)) users
+    in
+    table []
+        (tr [] (th [] [ text "Users" ] :: List.map (\date -> th [] [ text date ]) dates)
+        :: rows)
+
+checkbox : String -> String -> List String -> Html Msg
+checkbox date user acceptedDates =
+    let
+        isChecked =
+            List.member user acceptedDates && List.member date acceptedDates
+    in
+    input
+        [ type_ "checkbox"
+        , checked isChecked
+        , disabled False
+        ]
+        []
+
+
+
+
+
+

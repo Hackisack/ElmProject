@@ -174,12 +174,12 @@ view model =
           , div [] [text(model.responseString)]
           , div [] [text(model.rooms |> List.map .roomName |> String.join ", ")]
           , div [] [text (Debug.toString model.avilability)]
-          , div [] [ Html.form [] (List.map formFieldView model.formFieldsDate) --show all existing fields
+          , div [] [Html.ul [] (List.map (\field -> Html.li [] [Html.text field]) model.formFieldsDate)] --show all existing fields
           , input [ type_ "text", value model.newFieldDate, onInput UpdateNewField ] [] --show new fields
           , button [ onClick AddField ] [ text "Add Date/Event" ]
           , div [] [text (model.roomCreated)]
         ]
-          ]
+          
   }
 
 
