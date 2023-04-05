@@ -165,23 +165,60 @@ findRightRoom roomID myResults =
 
 -- TEST SPACE
 
+-- viewTable : MyObject -> Html Msg
+-- viewTable room =
+--     let
+--         dates = room.specifiedDates
+--         users = room.users
+--         rows =
+--             List.map (\user -> tr [] (td [] [ text user ] :: List.map (\date -> td [] [ checkbox date user room.acceptedDates ]) dates)) users
+--     in
+--     table []
+--         (tr [] (th [] [ text "Users" ] :: List.map (\date -> th [] [ text date ]) dates)
+--         :: rows)
+
+-- checkbox : String -> String -> List String -> Html Msg
+-- checkbox date user acceptedDates =
+--     let
+--         isChecked =
+--              List.member date acceptedDates
+--     in
+--     input
+--         [ type_ "checkbox"
+--         , checked isChecked
+--         , disabled True
+--         ]
+--         []
+
+
+
 viewTable : MyObject -> Html Msg
 viewTable room =
     let
         dates = room.specifiedDates
         users = room.users
         rows =
-            List.map (\user -> tr [] (td [] [ text user ] :: List.map (\date -> td [] [ checkbox date user room.acceptedDates ]) dates)) users
+            List.map (\user -> tr [] (td [] [ text user ] :: List.map (\date -> td [] [ checkbox date user room.acceptedDates dates users ]) dates)) users
     in
     table []
         (tr [] (th [] [ text "Users" ] :: List.map (\date -> th [] [ text date ]) dates)
         :: rows)
 
-checkbox : String -> String -> List String -> Html Msg
-checkbox date user acceptedDates =
+checkbox : String -> String -> List String -> List String -> List String -> Html Msg
+checkbox date user acceptedDates dates users =
     let
-        isChecked =
-             List.member date acceptedDates
+        -- Calculate the index of the user in the list of users
+        userIndex = List.indexedMap Tuple.pair users |> List.filterMap (\(i, u) -> if u == user then Just i else Nothing) |> List.head |> Maybe.withDefault 0
+
+        -- Calculate the start and end indices of the slice of accepted dates that belong to the current user
+        sliceStart = userIndex * List.length dates
+        sliceEnd = (userIndex + 1) * List.length dates
+
+        -- Extract the slice of accepted dates that belong to the current user
+        acceptedDatesForUser = List.take (sliceEnd - sliceStart) (List.drop sliceStart acceptedDates)
+
+        -- Check if the current date is in the slice of accepted dates for the current user
+        isChecked = List.member date acceptedDatesForUser
     in
     input
         [ type_ "checkbox"
@@ -189,6 +226,12 @@ checkbox date user acceptedDates =
         , disabled True
         ]
         []
+
+
+
+
+
+
 
 
 
