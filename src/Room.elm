@@ -181,7 +181,7 @@ checkbox : String -> String -> List String -> Html Msg
 checkbox date user acceptedDates =
     let
         isChecked =
-            List.member user acceptedDates && List.member date acceptedDates
+             List.member date acceptedDates
     in
     input
         [ type_ "checkbox"
