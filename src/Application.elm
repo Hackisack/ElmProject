@@ -135,7 +135,6 @@ update msg model =
     RoomCreation (Ok response) ->
         ( { model | roomCreated = "Room was created. Open this link to access it:" ++ "http://localhost:8000/src/Room.elm?roomID=" ++ model.randomString }, Cmd.none )
 
-
     RoomCreation (Err _) ->
         ( { model | roomCreated = "Error, please try again" }, Cmd.none )
 

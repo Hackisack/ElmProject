@@ -12,6 +12,10 @@ import Json.Decode exposing (field)
 import Html.Attributes exposing (type_)
 import Html.Attributes exposing (checked)
 import Html.Attributes exposing (disabled)
+import Html.Attributes exposing (placeholder)
+import Html.Events exposing (onInput)
+import Json.Encode as Encode
+import Application exposing (MyResults)
 
 main : Program () Model Msg
 main =
@@ -32,6 +36,7 @@ type alias Model =
     , roomID : String
     , room : MyObject
     , error : String
+    , allResultsToUse : List MyObject
     }
 
 type alias MyObject =
@@ -50,7 +55,7 @@ type alias MyResults =
 
 init : flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
-    ( Model key url "modelInitialValue" "default"  { objectId = "", specifiedDates = [""], users = [""], acceptedDates = [""], roomName = "", createdAt ="", updatedAt = ""} "", Cmd.none )
+    ( Model key url "modelInitialValue" "default"  { objectId = "", specifiedDates = [""], users = [""], acceptedDates = [""], roomName = "", createdAt ="", updatedAt = ""} "" [], Cmd.none )
 
 
 type Msg
@@ -60,6 +65,8 @@ type Msg
     | UrlChanged Url.Url
     | RetrieveUrlID
     | GotData (Result Http.Error MyResults)
+    | FieldUpdated String
+    | NamePushed (Result Http.Error String)
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -87,10 +94,19 @@ update msg model =
             ( {model | roomID =Maybe.withDefault "Error" (List.head (List.reverse (String.split "=" (Url.toString model.url))))}, getData)
 
         GotData (Ok response) ->
-           ( { model | room =(Maybe.withDefault defaultObject (findRightRoom model.roomID response))}, Cmd.none )
+           ( { model | room =(Maybe.withDefault defaultObject (findRightRoom model.roomID response))}, pushName model model.allResultsToUse )
             
         GotData (Err _) ->
             ( { model | error = "Error" }, Cmd.none )
+
+        FieldUpdated value ->
+            ( { model | property = value }, Cmd.none )
+
+        NamePushed (Ok response) ->
+            ( model, Cmd.none )
+
+        NamePushed (Err _) ->
+            ( model, Cmd.none )
 
 
 
@@ -105,9 +121,11 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "Room"
     , body =
-        [ div [] [ button [onClick RetrieveUrlID] [ text "Join this Room" ] ]
+        [ div [] [ button [onClick RetrieveUrlID] [ text "Join this Room as:" ] ]
+          ,div [] [ form [] [ input [type_ "text", placeholder "Your Name", onInput FieldUpdated] [] ] ]
           ,div [] [ text (model.roomID) ]
           ,div [] [ text (Debug.toString model.room) ]
+          ,div [] [ text (Debug.toString model.roomID) ]
           ,div [] [ viewTable model.room ]
         ]
     }
@@ -162,36 +180,6 @@ findRightRoom roomID myResults =
     List.filter (\obj -> obj.roomName == roomID) myResults.results
         |> List.head
 
-
--- TEST SPACE
-
--- viewTable : MyObject -> Html Msg
--- viewTable room =
---     let
---         dates = room.specifiedDates
---         users = room.users
---         rows =
---             List.map (\user -> tr [] (td [] [ text user ] :: List.map (\date -> td [] [ checkbox date user room.acceptedDates ]) dates)) users
---     in
---     table []
---         (tr [] (th [] [ text "Users" ] :: List.map (\date -> th [] [ text date ]) dates)
---         :: rows)
-
--- checkbox : String -> String -> List String -> Html Msg
--- checkbox date user acceptedDates =
---     let
---         isChecked =
---              List.member date acceptedDates
---     in
---     input
---         [ type_ "checkbox"
---         , checked isChecked
---         , disabled True
---         ]
---         []
-
-
-
 viewTable : MyObject -> Html Msg
 viewTable room =
     let
@@ -226,6 +214,56 @@ checkbox date user acceptedDates dates users =
         , disabled True
         ]
         []
+
+pushName : Model -> List MyObject -> Cmd Msg
+pushName model myObjects =
+    let
+        matchingObjectId =
+            findMatchingObjectId model myObjects
+
+        updatedObjects =
+            case matchingObjectId of
+                Just objectId ->
+                    List.map
+                        (\obj ->
+                            if obj.objectId == objectId then
+                                { obj | users = obj.users ++ [model.property] }
+                            else
+                                obj
+                        )
+                        myObjects
+
+                Nothing ->
+                    myObjects
+  in
+  let
+    payload : Encode.Value
+    payload =
+        Encode.object
+            [ ( "users", Encode.list Encode.string (List.concatMap .users updatedObjects) )
+            ]
+  in
+    Http.request
+        {method = "PUT"
+        , headers = [Http.header "X-Parse-Application-Id" "58G7kMmJiXqTEW6MCENwiLb6H8ebaiCJX3ahL91c", Http.header "X-Parse-REST-API-Key" "elB9iy4qqTAHzWxdQtFTqRsm84tTRctjyAmMyIBO"]
+        , url = "https://parseapi.back4app.com/classes/RoomEntry/" ++ Maybe.withDefault "Error" matchingObjectId
+        , body = Http.jsonBody payload
+        , expect = Http.expectString NamePushed
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+findMatchingObjectId : Model -> List MyObject -> Maybe String
+findMatchingObjectId model myObjects =
+    let
+        matchingObjects =
+            List.filter (\obj -> obj.roomName == model.roomID) myObjects
+    in
+    case matchingObjects of
+        (matchingObject :: _) ->
+            Just matchingObject.objectId
+        _ ->
+            Nothing
 
 
 
