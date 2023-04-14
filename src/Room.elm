@@ -94,7 +94,17 @@ update msg model =
             ( {model | roomID =Maybe.withDefault "Error" (List.head (List.reverse (String.split "=" (Url.toString model.url))))}, getData)
 
         GotData (Ok response) ->
-           ( { model | room =(Maybe.withDefault defaultObject (findRightRoom model.roomID response))}, pushName model model.allResultsToUse )
+           let
+            newResult =
+                Maybe.withDefault defaultObject (findRightRoom model.roomID response)
+            in
+            let
+                newResults =
+                    newResult :: model.allResultsToUse
+            in
+            ( { model | room = newResult, allResultsToUse = newResults }
+            , pushName model newResults
+            )
             
         GotData (Err _) ->
             ( { model | error = "Error" }, Cmd.none )
@@ -125,7 +135,7 @@ view model =
           ,div [] [ form [] [ input [type_ "text", placeholder "Your Name", onInput FieldUpdated] [] ] ]
           ,div [] [ text (model.roomID) ]
           ,div [] [ text (Debug.toString model.room) ]
-          ,div [] [ text (Debug.toString model.roomID) ]
+          ,div [] [ text (Debug.toString model.allResultsToUse) ]
           ,div [] [ viewTable model.room ]
         ]
     }
@@ -223,7 +233,7 @@ pushName model myObjects =
 
         updatedObjects =
             case matchingObjectId of
-                Just objectId ->
+                objectId ->
                     List.map
                         (\obj ->
                             if obj.objectId == objectId then
@@ -232,9 +242,6 @@ pushName model myObjects =
                                 obj
                         )
                         myObjects
-
-                Nothing ->
-                    myObjects
   in
   let
     payload : Encode.Value
@@ -246,14 +253,14 @@ pushName model myObjects =
     Http.request
         {method = "PUT"
         , headers = [Http.header "X-Parse-Application-Id" "58G7kMmJiXqTEW6MCENwiLb6H8ebaiCJX3ahL91c", Http.header "X-Parse-REST-API-Key" "elB9iy4qqTAHzWxdQtFTqRsm84tTRctjyAmMyIBO"]
-        , url = "https://parseapi.back4app.com/classes/RoomEntry/" ++ Maybe.withDefault "Error" matchingObjectId
+        , url = "https://parseapi.back4app.com/classes/RoomEntry/" ++ matchingObjectId
         , body = Http.jsonBody payload
         , expect = Http.expectString NamePushed
         , timeout = Nothing
         , tracker = Nothing
         }
 
-findMatchingObjectId : Model -> List MyObject -> Maybe String
+findMatchingObjectId : Model -> List MyObject -> String
 findMatchingObjectId model myObjects =
     let
         matchingObjects =
@@ -261,9 +268,10 @@ findMatchingObjectId model myObjects =
     in
     case matchingObjects of
         (matchingObject :: _) ->
-            Just matchingObject.objectId
+             matchingObject.objectId
         _ ->
-            Nothing
+            Debug.toString myObjects
+
 
 
 
