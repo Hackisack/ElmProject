@@ -145,7 +145,7 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "Room"
     , body =
-        [ if model.bool then div [] [ button [ onClick RetrieveUrlID ] [ text "Join this Room" ] ]
+        [ if model.bool then div [] [ button [ onClick RetrieveUrlID ] [ text "View this Room" ] ]
           else
               
           --,div [] [ form [] [ input [type_ "text", placeholder "Your Name", onInput FieldUpdated] [] ] ]
