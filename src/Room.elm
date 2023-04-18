@@ -67,7 +67,6 @@ type Msg
     | UrlChanged Url.Url
     | RetrieveUrlID
     | GotData (Result Http.Error MyResults)
-    | FieldUpdated String
     | NamePushed (Result Http.Error String)
     | UserUpdated String
 
@@ -112,16 +111,13 @@ update msg model =
         GotData (Err _) ->
             ( { model | error = "Error" }, Cmd.none )
 
-        FieldUpdated value ->
+        UserUpdated value ->
             ( { model | property = value }, Cmd.none )
 
         NamePushed (Ok response) ->
             ( model, Cmd.none )
 
         NamePushed (Err _) ->
-            ( model, Cmd.none )
-
-        UserUpdated value->
             ( model, Cmd.none )
 
 
