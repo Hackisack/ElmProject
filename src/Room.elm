@@ -212,7 +212,7 @@ viewTable room =
         newRow =
             tr []
                 (td [] [ input [ type_ "text", placeholder "Your Name", onInput UserUpdated ][] ]
-                :: List.indexedMap (\index date -> td [] [ input[ type_ "checkbox", checked False, disabled False, onCheck (\isChecked -> if isChecked then CheckboxChecked index date else CheckboxChecked index date)][]]) dates)
+                :: List.indexedMap (\index date -> td [] [ input[ type_ "checkbox", disabled False, onCheck (\isChecked -> if isChecked then CheckboxChecked index date else CheckboxChecked index date)][]]) dates)
 
 
     in
