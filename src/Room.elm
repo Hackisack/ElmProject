@@ -18,6 +18,7 @@ import Application exposing (MyResults)
 import Browser.Dom exposing (..)
 import Html.Attributes exposing (value)
 import Html.Events exposing (onCheck)
+import Browser.Navigation
 
 main : Program () Model Msg
 main =
@@ -73,6 +74,7 @@ type Msg
     | UserUpdated String
     | CheckboxChecked Int String
     | CreateList
+    | PushData
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -119,7 +121,7 @@ update msg model =
             ( { model | property = value }, Cmd.none )
 
         NamePushed (Ok response) ->
-            ( model, Cmd.none )
+            ( model, Browser.Navigation.reload )
 
         NamePushed (Err _) ->
             ( model, Cmd.none )
@@ -130,8 +132,8 @@ update msg model =
         CreateList ->
             ( model, Cmd.none )
 
-
-
+        PushData ->
+            ( model,pushData model model.allResultsToUse)
 
 
 subscriptions : Model -> Sub Msg
@@ -147,7 +149,7 @@ view model =
           else
               
           --,div [] [ form [] [ input [type_ "text", placeholder "Your Name", onInput FieldUpdated] [] ] ]
-          div [] [ viewTable model.room ]
+          div [] [ viewTable model.room, button [ onClick PushData ] [ text "Send your choice" ] ]
           , div [][text (Debug.toString model.checkboxes)]
         ]
     }
@@ -246,8 +248,8 @@ checkbox date user acceptedDates dates users =
         ]
         []
 
-pushName : Model -> List MyObject -> Cmd Msg
-pushName model myObjects =
+pushData : Model -> List MyObject -> Cmd Msg
+pushData model myObjects =
     let
         matchingObjectId =
             findMatchingObjectId model myObjects
@@ -258,7 +260,7 @@ pushName model myObjects =
                     List.map
                         (\obj ->
                             if obj.objectId == objectId then
-                                { obj | users = obj.users ++ [model.property] }
+                                {obj | users = obj.users ++ [model.property], acceptedDates = obj.acceptedDates ++ model.checkboxes }
                             else
                                 obj
                         )
@@ -269,6 +271,7 @@ pushName model myObjects =
     payload =
         Encode.object
             [ ( "users", Encode.list Encode.string (List.concatMap .users updatedObjects) )
+            , ( "acceptedDates", Encode.list Encode.string (List.concatMap .acceptedDates updatedObjects) )
             ]
   in
     Http.request
