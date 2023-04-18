@@ -4,7 +4,6 @@ import Browser
 import Browser.Navigation as Nav
 import Html exposing (..)
 import Url
-import Url
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode exposing (Decoder)
@@ -16,6 +15,8 @@ import Html.Attributes exposing (placeholder)
 import Html.Events exposing (onInput)
 import Json.Encode as Encode
 import Application exposing (MyResults)
+import Browser.Dom exposing (..)
+import Html.Attributes exposing (value)
 
 main : Program () Model Msg
 main =
@@ -37,6 +38,7 @@ type alias Model =
     , room : MyObject
     , error : String
     , allResultsToUse : List MyObject
+    , bool : Bool
     }
 
 type alias MyObject =
@@ -55,7 +57,7 @@ type alias MyResults =
 
 init : flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
-    ( Model key url "modelInitialValue" "default"  { objectId = "", specifiedDates = [""], users = [""], acceptedDates = [""], roomName = "", createdAt ="", updatedAt = ""} "" [], Cmd.none )
+    ( Model key url "modelInitialValue" "default"  { objectId = "", specifiedDates = [""], users = [""], acceptedDates = [""], roomName = "", createdAt ="", updatedAt = ""} "" [] True, Cmd.none )
 
 
 type Msg
@@ -67,6 +69,7 @@ type Msg
     | GotData (Result Http.Error MyResults)
     | FieldUpdated String
     | NamePushed (Result Http.Error String)
+    | UserUpdated String
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -102,8 +105,8 @@ update msg model =
                 newResults =
                     newResult :: model.allResultsToUse
             in
-            ( { model | room = newResult, allResultsToUse = newResults }
-            , pushName model newResults
+            ( { model | room = newResult, allResultsToUse = newResults, bool = False }
+            , Cmd.none
             )
             
         GotData (Err _) ->
@@ -116,6 +119,9 @@ update msg model =
             ( model, Cmd.none )
 
         NamePushed (Err _) ->
+            ( model, Cmd.none )
+
+        UserUpdated value->
             ( model, Cmd.none )
 
 
@@ -131,12 +137,11 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "Room"
     , body =
-        [ div [] [ button [onClick RetrieveUrlID] [ text "Join this Room as:" ] ]
-          ,div [] [ form [] [ input [type_ "text", placeholder "Your Name", onInput FieldUpdated] [] ] ]
-          ,div [] [ text (model.roomID) ]
-          ,div [] [ text (Debug.toString model.room) ]
-          ,div [] [ text (Debug.toString model.allResultsToUse) ]
-          ,div [] [ viewTable model.room ]
+        [ if model.bool then div [] [ button [ onClick RetrieveUrlID ] [ text "Join this Room" ] ]
+          else
+              
+          --,div [] [ form [] [ input [type_ "text", placeholder "Your Name", onInput FieldUpdated] [] ] ]
+          div [] [ viewTable model.room ]
         ]
     }
 
@@ -197,10 +202,19 @@ viewTable room =
         users = room.users
         rows =
             List.map (\user -> tr [] (td [] [ text user ] :: List.map (\date -> td [] [ checkbox date user room.acceptedDates dates users ]) dates)) users
+        newRow =
+            tr []
+                (td [] [ input [ type_ "text", placeholder "Your Name", onInput UserUpdated ][] ]
+                :: List.map (\date -> td [] [ input[ type_ "checkbox", checked False, disabled False][]]) dates)
+
+
     in
     table []
         (tr [] (th [] [ text "Users" ] :: List.map (\date -> th [] [ text date ]) dates)
-        :: rows)
+        :: rows ++ [ newRow ])
+
+
+
 
 checkbox : String -> String -> List String -> List String -> List String -> Html Msg
 checkbox date user acceptedDates dates users =
@@ -271,16 +285,3 @@ findMatchingObjectId model myObjects =
              matchingObject.objectId
         _ ->
             Debug.toString myObjects
-
-
-
-
-
-
-
-
-
-
-
-
-
