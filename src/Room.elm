@@ -17,6 +17,7 @@ import Json.Encode as Encode
 import Application exposing (MyResults)
 import Browser.Dom exposing (..)
 import Html.Attributes exposing (value)
+import Html.Events exposing (onCheck)
 
 main : Program () Model Msg
 main =
@@ -39,6 +40,7 @@ type alias Model =
     , error : String
     , allResultsToUse : List MyObject
     , bool : Bool
+    , checkboxes : List String
     }
 
 type alias MyObject =
@@ -57,7 +59,7 @@ type alias MyResults =
 
 init : flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
-    ( Model key url "modelInitialValue" "default"  { objectId = "", specifiedDates = [""], users = [""], acceptedDates = [""], roomName = "", createdAt ="", updatedAt = ""} "" [] True, Cmd.none )
+    ( Model key url "modelInitialValue" "default"  { objectId = "", specifiedDates = [""], users = [""], acceptedDates = [""], roomName = "", createdAt ="", updatedAt = ""} "" [] True [], Cmd.none )
 
 
 type Msg
@@ -69,6 +71,8 @@ type Msg
     | GotData (Result Http.Error MyResults)
     | NamePushed (Result Http.Error String)
     | UserUpdated String
+    | CheckboxChecked Int String
+    | CreateList
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -104,7 +108,7 @@ update msg model =
                 newResults =
                     newResult :: model.allResultsToUse
             in
-            ( { model | room = newResult, allResultsToUse = newResults, bool = False }
+            ( { model | room = newResult, allResultsToUse = newResults, bool = False, checkboxes = createEmptyCheckbox model }
             , Cmd.none
             )
             
@@ -118,6 +122,12 @@ update msg model =
             ( model, Cmd.none )
 
         NamePushed (Err _) ->
+            ( model, Cmd.none )
+
+        CheckboxChecked int string ->
+            ( { model | checkboxes =  createCheckbox model int string } , Cmd.none )
+
+        CreateList ->
             ( model, Cmd.none )
 
 
@@ -138,6 +148,7 @@ view model =
               
           --,div [] [ form [] [ input [type_ "text", placeholder "Your Name", onInput FieldUpdated] [] ] ]
           div [] [ viewTable model.room ]
+          , div [][text (Debug.toString model.checkboxes)]
         ]
     }
 
@@ -201,7 +212,7 @@ viewTable room =
         newRow =
             tr []
                 (td [] [ input [ type_ "text", placeholder "Your Name", onInput UserUpdated ][] ]
-                :: List.map (\date -> td [] [ input[ type_ "checkbox", checked False, disabled False][]]) dates)
+                :: List.indexedMap (\index date -> td [] [ input[ type_ "checkbox", checked False, disabled False, onCheck (\isChecked -> if isChecked then CheckboxChecked index date else CheckboxChecked index date)][]]) dates)
 
 
     in
@@ -281,3 +292,42 @@ findMatchingObjectId model myObjects =
              matchingObject.objectId
         _ ->
             Debug.toString myObjects
+
+createCheckbox : Model -> Int -> String -> List String
+createCheckbox model int string =
+    let
+        specifiedDates = model.room.specifiedDates
+        checkboxes = model.checkboxes
+        (before, after) = split int checkboxes
+        (newCheckbox, rest) =
+            case after of
+                hd :: tl ->
+                    if hd == string then
+                        ("0", tl)
+                    else
+                        (string, tl)
+                [] ->
+                    (string, [])
+    in
+    before ++ [newCheckbox] ++ rest ++ List.repeat (List.length specifiedDates - List.length (before ++ [newCheckbox] ++ rest)) "0"
+
+createEmptyCheckbox : Model -> List String
+createEmptyCheckbox model =
+    let
+        specifiedDates = model.room.specifiedDates
+    in
+    List.repeat (List.length specifiedDates) "0"
+
+
+
+
+split : Int -> List a -> (List a, List a)
+split i xs =
+    (List.take i xs, List.drop i xs) 
+
+
+
+
+
+
+
