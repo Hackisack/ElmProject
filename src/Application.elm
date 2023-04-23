@@ -63,6 +63,7 @@ type alias Model =
   , formFieldsDate : List String
   , newFieldDate : String
   , roomCreated : String
+  , roomCreatedString : String
   }
 
 type alias MyObject =
@@ -86,7 +87,7 @@ type alias MyCreation =
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
-  ( Model key url "" "" [] False [] "" "", Cmd.none )
+  ( Model key url "" "" [] False [] "" "" "", Cmd.none )
 
 
 
@@ -133,7 +134,7 @@ update msg model =
         ( { model | responseString = "Error" }, Cmd.none )
 
     RoomCreation (Ok response) ->
-        ( { model | roomCreated = "Room was created. Open this link to access it:" ++ "http://localhost:8000/src/Room.elm?roomID=" ++ model.randomString }, Cmd.none )
+        ( { model | roomCreated = "http://localhost:8000/src/Room.elm?roomID=" ++ model.randomString, roomCreatedString = "Room was created: Visit this Link to join: " }, Cmd.none )
 
     RoomCreation (Err _) ->
         ( { model | roomCreated = "Error, please try again" }, Cmd.none )
@@ -168,15 +169,11 @@ view : Model -> Browser.Document Msg
 view model =
   { title = "Terminplaner"
   , body =
-      [div [] [ button [onClick HTTPRequest] [ text "Create New Room" ] ]
-          , div [] [text(model.randomString)]
-          , div [] [text(model.responseString)]
-          , div [] [text(model.rooms |> List.map .roomName |> String.join ", ")]
-          , div [] [text (Debug.toString model.avilability)]
-          , div [] [Html.ul [] (List.map (\field -> Html.li [] [Html.text field]) model.formFieldsDate)] --show all existing fields
+      [  div [] [Html.ul [] (List.map (\field -> Html.li [] [Html.text field]) model.formFieldsDate)] --show all existing fields
           , input [ type_ "text", value model.newFieldDate, onInput UpdateNewField ] [] --show new fields
           , button [ onClick AddField ] [ text "Add Date/Event" ]
-          , div [] [text (model.roomCreated)]
+          , div [] [ button [onClick HTTPRequest] [ text "Create New Room" ] ]
+          , div [] [text(model.roomCreatedString)  ,a [href model.roomCreated, target "_blank"] [text model.roomCreated]]
         ]
           
   }

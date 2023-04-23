@@ -150,7 +150,7 @@ view model =
               
           --,div [] [ form [] [ input [type_ "text", placeholder "Your Name", onInput FieldUpdated] [] ] ]
           div [] [ viewTable model.room, button [ onClick PushData ] [ text "Send your choice" ] ]
-          , div [][text (Debug.toString model.checkboxes)]
+          
         ]
     }
 
