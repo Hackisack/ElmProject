@@ -147,8 +147,6 @@ view model =
     , body =
         [ if model.bool then div [] [ button [ onClick RetrieveUrlID ] [ text "View this Room" ] ]
           else
-              
-          --,div [] [ form [] [ input [type_ "text", placeholder "Your Name", onInput FieldUpdated] [] ] ]
           div [] [ viewTable model.room, button [ onClick PushData ] [ text "Send your choice" ] ]
           
         ]
