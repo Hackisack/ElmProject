@@ -147,8 +147,8 @@ view model =
     , body =
         [ if model.bool then div [] [ button [ onClick RetrieveUrlID ] [ text "View this Room" ] ]
           else
-          div [] [ viewTable model.room, button [ onClick PushData ] [ text "Send your choice" ] ]
-          
+          div [] [ viewTable model.room ]
+        ,div[][ button [ onClick PushData ] [ text "Send your choice" ]]
         ]
     }
 
