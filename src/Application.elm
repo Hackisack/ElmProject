@@ -31,6 +31,7 @@ import Json.Decode exposing (Decoder, field)
 import Json.Decode
 import Json.Encode as Encode
 import Debug
+import Json.Decode exposing (null)
 
 
 
@@ -101,6 +102,7 @@ type Msg
   | HTTPRequest
   | GotData (Result Http.Error MyResults)
   | AddField
+  | ResetList
   | UpdateNewField String
   | RoomCreation (Result Http.Error MyCreation)
 
@@ -134,7 +136,8 @@ update msg model =
         ( { model | responseString = "Error" }, Cmd.none )
 
     RoomCreation (Ok response) -> --TODO extract real path
-        ( { model | roomCreated = "http://localhost:8000/src/Room.elm?roomID=" ++ model.randomString, roomCreatedString = "Room was created: Visit this Link to join: " }, Cmd.none )
+
+        ( { model | roomCreated = model.url.host ++ ":" ++  Maybe.withDefault "" (Maybe.map String.fromInt model.url.port_)++ String.dropRight 16 model.url.path ++ "Room.html?roomID=" ++ model.randomString, roomCreatedString = "Room was created. Visit this Link to join: " }, Cmd.none )
 
     RoomCreation (Err _) ->
         ( { model | roomCreated = "Error, please try again" }, Cmd.none )
@@ -144,6 +147,9 @@ update msg model =
 
     UpdateNewField newField ->
         ({ model | newFieldDate = newField }, Cmd.none)
+
+    ResetList ->
+        ({ model | formFieldsDate = [] }, Cmd.none)
 
 
 
@@ -168,10 +174,11 @@ subscriptions _ =
 view : Model -> Browser.Document Msg
 view model =
   { title = "Terminplaner"
-  , body = --TODO add "reset list button"
+  , body =
       [    div [class "containerList"] [Html.ul [class "listUL"] (List.map (\field -> Html.li [class "listLI"] [Html.text field]) model.formFieldsDate)] --show all existing fields
           ,div [class "container2"] [ input [ type_ "text", value model.newFieldDate, onInput UpdateNewField, placeholder "YOUR CHOICE" ] []] --show new fields
           ,div [class "container2"] [button [class "btn2" , onClick AddField ] [ text "Add Date/Event" ]]
+          ,div [class "container2"] [button [class "btn2" , onClick ResetList ] [ text "Reset List" ]]
           ,div [class "container"] [ button [class "btn" ,onClick HTTPRequest] [ text "Create New Room" ] ]
           ,div [] [p [][text model.roomCreatedString]  ,a [href model.roomCreated, target "_blank"] [text model.roomCreated]]
         ]

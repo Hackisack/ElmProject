@@ -47,14 +47,6 @@ body {
   margin-left: 2px;
 }
 
-
-a {
-  font-size: 1.5rem;
-  padding: 1rem 3rem;
-  color: #f4f4f4;
-  text-transform: uppercase;
-}
-
 .btn {
   text-decoration: none;
   border: 3px solid rgb(146, 148, 248);
@@ -66,6 +58,7 @@ a {
   height: 5%;
   border-radius: 12px;
   text-transform: uppercase;
+  margin-top: -5%;
 }
 
 .btn:hover {
@@ -154,6 +147,26 @@ input:focus ~ .highlight {
   -webkit-animation:inputHighlighter 0.3s ease;
   -moz-animation:inputHighlighter 0.3s ease;
   animation:inputHighlighter 0.3s ease;
+}
+
+p {
+  color: white;
+  font-size: 14px;
+  padding: 1rem 3rem;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+a {
+  color: white;
+  font-size: 14px;
+  padding: 1rem 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: -2%;
 }
 
 /* ANIMATIONS ================ */
