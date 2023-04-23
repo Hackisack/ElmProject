@@ -133,7 +133,7 @@ update msg model =
     GotData (Err _) ->
         ( { model | responseString = "Error" }, Cmd.none )
 
-    RoomCreation (Ok response) ->
+    RoomCreation (Ok response) -> --TODO extract real path
         ( { model | roomCreated = "http://localhost:8000/src/Room.elm?roomID=" ++ model.randomString, roomCreatedString = "Room was created: Visit this Link to join: " }, Cmd.none )
 
     RoomCreation (Err _) ->
@@ -168,12 +168,12 @@ subscriptions _ =
 view : Model -> Browser.Document Msg
 view model =
   { title = "Terminplaner"
-  , body =
-      [  div [] [Html.ul [] (List.map (\field -> Html.li [] [Html.text field]) model.formFieldsDate)] --show all existing fields
-          , input [ type_ "text", value model.newFieldDate, onInput UpdateNewField ] [] --show new fields
-          , button [ onClick AddField ] [ text "Add Date/Event" ]
-          , div [] [ button [onClick HTTPRequest] [ text "Create New Room" ] ]
-          , div [] [text(model.roomCreatedString)  ,a [href model.roomCreated, target "_blank"] [text model.roomCreated]]
+  , body = --TODO add "reset list button"
+      [    div [class "containerList"] [Html.ul [class "listUL"] (List.map (\field -> Html.li [class "listLI"] [Html.text field]) model.formFieldsDate)] --show all existing fields
+          ,div [class "container2"] [ input [ type_ "text", value model.newFieldDate, onInput UpdateNewField, placeholder "YOUR CHOICE" ] []] --show new fields
+          ,div [class "container2"] [button [class "btn2" , onClick AddField ] [ text "Add Date/Event" ]]
+          ,div [class "container"] [ button [class "btn" ,onClick HTTPRequest] [ text "Create New Room" ] ]
+          ,div [] [p [][text model.roomCreatedString]  ,a [href model.roomCreated, target "_blank"] [text model.roomCreated]]
         ]
           
   }
