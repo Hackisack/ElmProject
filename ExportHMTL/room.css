@@ -84,4 +84,26 @@ tbody td:hover:before {
     z-index: -1;
 }
 
+input         {
+
+    font-size:14px;
+    width:15%;
+    border:none;
+    border-bottom:1px solid #757575;
+    background-color: transparent;
+    color: white;
+  }
+  input:focus     { outline:none; }
   
+  input:focus ~ label, input:valid ~ label    {
+    top:-20px;
+    font-size:14px;
+    color:#5264AE;
+  }
+  
+  /* active state */
+  input:focus ~ .highlight {
+    -webkit-animation:inputHighlighter 0.3s ease;
+    -moz-animation:inputHighlighter 0.3s ease;
+    animation:inputHighlighter 0.3s ease;
+  }
