@@ -7082,7 +7082,7 @@ var $author$project$Room$view = function (model) {
 					[
 						$author$project$Room$viewTable(model.room)
 					])),
-				A2(
+				(!model.bool) ? A2(
 				$elm$html$Html$div,
 				_List_Nil,
 				_List_fromArray(
@@ -7097,7 +7097,7 @@ var $author$project$Room$view = function (model) {
 							[
 								$elm$html$Html$text('Send your choice')
 							]))
-					]))
+					])) : A2($elm$html$Html$div, _List_Nil, _List_Nil)
 			]),
 		title: 'Room'
 	};
