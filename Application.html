@@ -6873,10 +6873,10 @@ var $author$project$Application$update = F2(
 						_Utils_update(
 							model,
 							{
-								roomCreated: model.url.host + (A2(
+								roomCreated: 'https://' + (model.url.host + (A2(
 									$elm$core$Maybe$withDefault,
 									'',
-									A2($elm$core$Maybe$map, $elm$core$String$fromInt, model.url.port_)) + (A2($elm$core$String$dropRight, 16, model.url.path) + ('Room.html?roomID=' + model.randomString))),
+									A2($elm$core$Maybe$map, $elm$core$String$fromInt, model.url.port_)) + (A2($elm$core$String$dropRight, 16, model.url.path) + ('Room.html?roomID=' + model.randomString)))),
 								roomCreatedString: 'Room was created. Visit this Link to join: '
 							}),
 						$elm$core$Platform$Cmd$none);
