@@ -87,7 +87,7 @@ tbody td:hover:before {
 input         {
 
     font-size:14px;
-    width:15%;
+    width:100%;
     border:none;
     border-bottom:1px solid #757575;
     background-color: transparent;
