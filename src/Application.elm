@@ -98,7 +98,7 @@ init _ url key =
 type Msg
   = LinkClicked Browser.UrlRequest
   | UrlChanged Url.Url
-  |Rolled String
+  | Rolled String
   | HTTPRequest
   | GotData (Result Http.Error MyResults)
   | AddField
@@ -135,7 +135,7 @@ update msg model =
     GotData (Err _) ->
         ( { model | responseString = "Error" }, Cmd.none )
 
-    RoomCreation (Ok response) -> --TODO extract real path
+    RoomCreation (Ok response) ->
 
         ( { model | roomCreated = model.url.host ++ ":" ++  Maybe.withDefault "" (Maybe.map String.fromInt model.url.port_)++ String.dropRight 16 model.url.path ++ "Room.html?roomID=" ++ model.randomString, roomCreatedString = "Room was created. Visit this Link to join: " }, Cmd.none )
 
