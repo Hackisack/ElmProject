@@ -137,7 +137,7 @@ update msg model =
 
     RoomCreation (Ok response) ->
 
-        ( { model | roomCreated = model.url.host ++ ":" ++  Maybe.withDefault "" (Maybe.map String.fromInt model.url.port_)++ String.dropRight 16 model.url.path ++ "Room.html?roomID=" ++ model.randomString, roomCreatedString = "Room was created. Visit this Link to join: " }, Cmd.none )
+        ( { model | roomCreated = model.url.host ++  Maybe.withDefault "" (Maybe.map String.fromInt model.url.port_)++ String.dropRight 16 model.url.path ++ "Room.html?roomID=" ++ model.randomString, roomCreatedString = "Room was created. Visit this Link to join: " }, Cmd.none )
 
     RoomCreation (Err _) ->
         ( { model | roomCreated = "Error, please try again" }, Cmd.none )
