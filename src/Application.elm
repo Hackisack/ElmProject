@@ -30,8 +30,7 @@ import Http exposing (..)
 import Json.Decode exposing (Decoder, field)
 import Json.Decode
 import Json.Encode as Encode
-import Debug
-import Json.Decode exposing (null)
+import Json.Decode
 
 
 
@@ -275,6 +274,3 @@ createRoom model =
             sendData model avilable
     in
     sendDataCmd
-
--- Response if rrom is created sucessfully 
--- {"objectId":"sUFyQvrR8w","createdAt":"2023-04-04T14:05:28.530Z"}

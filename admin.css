@@ -1,0 +1,115 @@
+body {
+    background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+      url("trianglify-lowres.png")
+        center center/cover no-repeat fixed;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  button {
+    text-decoration: none;
+    border: 3px solid rgb(146, 148, 248);
+    position: relative;
+    overflow: hidden;
+    background-color: transparent;
+    color: white;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    text-transform: uppercase;
+
+  }
+
+  div{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5%;
+  }
+  
+  button:hover {
+    box-shadow: 1px 1px 25px 10px rgba(146, 148, 248, 0.4);
+  }
+  
+  button:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      120deg,
+      transparent,
+      rgba(146, 148, 248, 0.4),
+      transparent
+    );
+    transition: all 650ms;
+  }
+  
+  button:hover:before {
+    left: 100%;
+  }
+
+  table {
+    width: 800px;
+    border-collapse: collapse;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+th, td {
+    padding: 15px;
+    background-color: transparent;
+    color: #fff;
+}
+th {
+    text-align: left;
+}
+thead th {
+    background-color: #55608f;
+}
+tbody tr:hover {
+    background-color: rgba(255,255,255,0.3);
+}
+tbody td {
+    position: relative;
+}
+tbody td:hover:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -9999px;
+    bottom: -9999px;
+    background-color: rgba(255,255,255,0.2);
+    z-index: -1;
+}
+
+input         {
+
+    font-size:14px;
+    width:100%;
+    border:none;
+    border-bottom:1px solid #757575;
+    background-color: transparent;
+    color: white;
+  }
+  input:focus     { outline:none; }
+  
+  input:focus ~ label, input:valid ~ label    {
+    top:-20px;
+    font-size:14px;
+    color:#5264AE;
+  }
+  
+  /* active state */
+  input:focus ~ .highlight {
+    -webkit-animation:inputHighlighter 0.3s ease;
+    -moz-animation:inputHighlighter 0.3s ease;
+    animation:inputHighlighter 0.3s ease;
+  }
+
+  .btn2 {
+
+    width: 10%;
+    height: 5%;
+  }
