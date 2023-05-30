@@ -153,7 +153,7 @@ view model =
         , if model.bool == False then div[][ button [ onClick PushData ] [ text "Send your choice" ]]
           else
           div [] []
-        , if model.bool == False then div [] [viewBest model]
+        , if model.bool == False then span [] [viewBest model]
           else
           div [] []
         ]

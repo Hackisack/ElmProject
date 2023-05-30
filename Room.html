@@ -6805,8 +6805,97 @@ var $elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		$elm$json$Json$Decode$succeed(msg));
 };
+var $elm$html$Html$span = _VirtualDom_node('span');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $elm$core$List$maximum = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(
+			A3($elm$core$List$foldl, $elm$core$Basics$max, x, xs));
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$core$Basics$neq = _Utils_notEqual;
+var $elm$core$Dict$values = function (dict) {
+	return A3(
+		$elm$core$Dict$foldr,
+		F3(
+			function (key, value, valueList) {
+				return A2($elm$core$List$cons, value, valueList);
+			}),
+		_List_Nil,
+		dict);
+};
+var $author$project$Room$viewBest = function (model) {
+	var dateCounts = A3(
+		$elm$core$List$foldl,
+		F2(
+			function (date, counts) {
+				return A3(
+					$elm$core$Dict$update,
+					date,
+					function (count) {
+						return $elm$core$Maybe$Just(
+							A2($elm$core$Maybe$withDefault, 0, count) + 1);
+					},
+					counts);
+			}),
+		$elm$core$Dict$empty,
+		A2(
+			$elm$core$List$filter,
+			$elm$core$Basics$neq('0'),
+			A2(
+				$elm$core$List$filter,
+				$elm$core$Basics$neq(''),
+				model.room.acceptedDates)));
+	var mostCount = A2(
+		$elm$core$Maybe$withDefault,
+		0,
+		$elm$core$List$maximum(
+			$elm$core$Dict$values(dateCounts)));
+	var mostDates = A2(
+		$elm$core$List$filterMap,
+		function (_v1) {
+			var date = _v1.a;
+			var count = _v1.b;
+			return _Utils_eq(count, mostCount) ? $elm$core$Maybe$Just(date) : $elm$core$Maybe$Nothing;
+		},
+		$elm$core$Dict$toList(dateCounts));
+	if (!mostDates.b) {
+		return A2(
+			$elm$html$Html$div,
+			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$text('No best date found')
+				]));
+	} else {
+		if (!mostDates.b.b) {
+			var date = mostDates.a;
+			return A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Most commonly accepted date: '),
+						$elm$html$Html$text(date)
+					]));
+		} else {
+			return A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Most commonly accepted dates: '),
+						$elm$html$Html$text(
+						A2($elm$core$String$join, ', ', mostDates))
+					]));
+		}
+	}
+};
 var $author$project$Room$CheckboxChecked = F2(
 	function (a, b) {
 		return {$: 'CheckboxChecked', a: a, b: b};
@@ -7052,9 +7141,9 @@ var $author$project$Room$viewTable = function (room) {
 						},
 						dates))),
 			_Utils_ap(
-				rows,
 				_List_fromArray(
-					[newRow]))));
+					[newRow]),
+				rows)));
 };
 var $author$project$Room$view = function (model) {
 	return {
@@ -7097,6 +7186,13 @@ var $author$project$Room$view = function (model) {
 							[
 								$elm$html$Html$text('Send your choice')
 							]))
+					])) : A2($elm$html$Html$div, _List_Nil, _List_Nil),
+				(!model.bool) ? A2(
+				$elm$html$Html$span,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$author$project$Room$viewBest(model)
 					])) : A2($elm$html$Html$div, _List_Nil, _List_Nil)
 			]),
 		title: 'Room'
