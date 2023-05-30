@@ -19,6 +19,8 @@ import Browser.Dom exposing (..)
 import Html.Attributes exposing (value)
 import Html.Events exposing (onCheck)
 import Browser.Navigation
+import Html.Attributes exposing (style)
+import Dict
 
 main : Program () Model Msg
 main =
@@ -151,6 +153,9 @@ view model =
         , if model.bool == False then div[][ button [ onClick PushData ] [ text "Send your choice" ]]
           else
           div [] []
+        , if model.bool == False then div [] [viewBest model]
+          else
+          div [] []
         ]
     }
 
@@ -216,11 +221,46 @@ viewTable room =
                 (td [] [ input [ type_ "text", placeholder "Your Name", onInput UserUpdated ][] ]
                 :: List.indexedMap (\index date -> td [] [ input[ type_ "checkbox", disabled False, onCheck (\isChecked -> if isChecked then CheckboxChecked index date else CheckboxChecked index date)][]]) dates)
 
-
     in
     table []
         (tr [] (th [] [ text "Users" ] :: List.map (\date -> th [] [ text date ]) dates)
-        :: rows ++ [ newRow ])
+        ::  [ newRow ] ++ rows)
+
+viewBest : Model -> Html msg
+viewBest model =
+    let
+        dateCounts =
+            model.room.acceptedDates
+                |> List.filter ((/=) "")
+                |> List.filter ((/=) "0")
+                |> List.foldl
+                    (\date counts ->
+                        Dict.update date (\count -> Just (Maybe.withDefault 0 count + 1)) counts
+                    )
+                    Dict.empty
+        mostCount =
+            Dict.values dateCounts
+                |> List.maximum
+                |> Maybe.withDefault 0
+        mostDates =
+            Dict.toList dateCounts
+                |> List.filterMap
+                    (\(date, count) ->
+                        if count == mostCount then
+                            Just date
+                        else
+                            Nothing
+                    )
+    in
+    case mostDates of
+        [] ->
+            div [] [ text "No best date found" ]
+        [ date ] ->
+            div [] [ text "Most commonly accepted date: ", text date ]
+        _ ->
+            div [] [ text "Most commonly accepted dates: ", text (String.join ", " mostDates) ]
+
+
 
 
 
