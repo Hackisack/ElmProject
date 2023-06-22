@@ -268,17 +268,14 @@ viewBest model =
 checkbox : String -> String -> List String -> List String -> List String -> Html Msg
 checkbox date user acceptedDates dates users =
     let
-        -- Calculate the index of the user in the list of users
+
         userIndex = List.indexedMap Tuple.pair users |> List.filterMap (\(i, u) -> if u == user then Just i else Nothing) |> List.head |> Maybe.withDefault 0
 
-        -- Calculate the start and end indices of the slice of accepted dates that belong to the current user
         sliceStart = userIndex * List.length dates
         sliceEnd = (userIndex + 1) * List.length dates
 
-        -- Extract the slice of accepted dates that belong to the current user
         acceptedDatesForUser = List.take (sliceEnd - sliceStart) (List.drop sliceStart acceptedDates)
 
-        -- Check if the current date is in the slice of accepted dates for the current user
         isChecked = List.member date acceptedDatesForUser
     in
     input
